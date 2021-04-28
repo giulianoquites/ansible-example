@@ -1,0 +1,12 @@
+---
+- name: Create File
+  hosts: all
+  gather_facts: false
+  
+  tasks:
+    - name: Create file in /tmp 
+      file:
+        path: /tmp/test
+        state: touch
+        mode: u=rw,g=r,o=r
+        
