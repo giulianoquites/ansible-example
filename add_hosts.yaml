@@ -1,0 +1,8 @@
+- name: Gerando hosts
+  hosts: localhost
+  tasks:
+    - name: Executando o add hosts
+      add_host:
+        name: "{{ item }}"
+        groups: automatos
+      with_items: '{{ servers.split() }}'
