@@ -1,0 +1,9 @@
+---
+- name: ping
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Upgrade all packages
+      yum:
+        name: '*'
+        state: latest
