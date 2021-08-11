@@ -1,5 +1,5 @@
 ---
-- name: ping
+- name: yum update
   hosts: all
   gather_facts: true
   tasks:
