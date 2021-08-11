@@ -1,0 +1,7 @@
+---
+- name: yum update
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Reboot server
+      reboot:
