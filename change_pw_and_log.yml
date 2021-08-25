@@ -13,6 +13,6 @@
     - name: Add a line to a file if the file does not exist, without passing regexp
       ansible.builtin.lineinfile:
         path: /tmp/testfile
-        line: '"{{ Host }}" "{{ XXX }}" "{{ XXX }}"'
+        line: '"{{ HOST }}" "{{ XXX }}" "{{ XXX }}"'
         backup: yes
         create: no
