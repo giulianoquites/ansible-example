@@ -1,0 +1,18 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Update Root user's Password
+      user:
+        name: root
+        update_password: always
+        password: "{{ SENHA|password_hash('sha512') }}"
+
+- hosts: idm001.lnx.example.local
+  tasks:
+    - name: Add a line to a file if the file does not exist, without passing regexp
+      ansible.builtin.lineinfile:
+        path: /tmp/testfile
+        line: '"{{ Host }}" "{{ XXX }}" "{{ XXX }}"'
+        backup: yes
+        create: no
