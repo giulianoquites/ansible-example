@@ -1,0 +1,265 @@
+---
+- name: ADD SERVER DOMINIO EXAMPLE RHEL 8
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: INSTALL PACKAGES
+      yum:
+        name:         
+          - openldap
+          - openldap-clients
+          - krb5-workstation
+          - samba-common-tools
+          - sssd
+          - sssd-client
+          - sssd-ad 
+          - sssd-tools 
+          - sssd-ldap 
+          - oddjob-mkhomedir
+        state: latest
+
+        
+    - name: CLEAN FILE SSSD.CONF
+      file:
+        path: /etc/sssd/sssd.conf
+        state: absent
+
+    - name: CREATE SSSD.CONF FILE
+      file:
+        path: /etc/sssd/sssd.conf
+        state: touch
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: CREATE FILE CERT
+      file:
+        path: /etc/pki/tls/certs/cert.crt
+        state: touch
+
+    - name: ADD CERT 
+      blockinfile: 
+        path: /etc/pki/tls/certs/cert.crt
+        block: |
+          -----BEGIN CERTIFICATE-----
+          MIIDazCCAlOgAwIBAgIQXtqo9fSpB51BFdu3o+FKxDANBgkqhkiG9w0BAQsFADBI
+          MRUwEwYKCZImiZPyLGQBGRYFbG9jYWwxFzAVBgoJkiaJk/IsZAEZFgdleGFtcGxl
+          MRYwFAYDVQQDEw1leGFtcGxlLUFELUNBMB4XDTIxMTAwOTIwMjAwMVoXDTMxMTAw
+          OTIwMzAwMVowSDEVMBMGCgmSJomT8ixkARkWBWxvY2FsMRcwFQYKCZImiZPyLGQB
+          GRYHZXhhbXBsZTEWMBQGA1UEAxMNZXhhbXBsZS1BRC1DQTCCASIwDQYJKoZIhvcN
+          AQEBBQADggEPADCCAQoCggEBALyO+CA/7xOAb0Ar7Ep3HbwhEApIp3vTa/mgd6DM
+          Mf6HTmYRiNK9u6ll90OWWT5MtWVM0dhoFu0sycUMDl/p+zCnOsg4Zai1pzbyCREU
+          FngD5EeNt1nAVuNH4raPczSIGw33F/e1SOCje29kXjXQvpB57qqJBLZgxPm5gEcY
+          X799oHpTeHrlEguOflHDTLKFwPMMEgFd95UMPmLfCrXHZuLujCLnpyLlVjg3eAY3
+          yZTpPJMGD/lWTUxWYjDm1tE/u4Dg/gLxWSjvNLRiYOJkuplv3LRgC5L+YlSYPStK
+          mqX+Qx5l7gquO5v5n/Z0pvgNsOXXiYTcSMZEdrKUbk2tQ+cCAwEAAaNRME8wCwYD
+          VR0PBAQDAgGGMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFHUUVKDa5PFD7B+f
+          hAz35F7Wj9mRMBAGCSsGAQQBgjcVAQQDAgEAMA0GCSqGSIb3DQEBCwUAA4IBAQBu
+          3OFSo/Z133DLPZxh0APC5kVPvobp3J8cBfPc5yhcrTnCFJ5KZ8OoErMmMbEDFL8+
+          KPIlJS+Ii6Fh1LQ/BYba2PpmYwd17YW3aa2H6t4nCm6W/RhLB0cR10NJK5v6AT9o
+          6nqas2L0TI0NoIYIhGwflm7n2ja3Weaic6okm03iOlHFKbYEqn4TO2hXbFAapc4s
+          rINuhRi2SZyaf/EhR0IEQy9LUExevChEElvOoSb3UAa/jevhzibqyWaSs0iRTzoM
+          apekkbJTzwqNBaTeflvXi+vAc1WyMieNF1qwIF/y5m3+Jy/1srNdG8JjgI43cnNr
+          JmYTBjlOi0c7SSIHj79V
+          -----END CERTIFICATE-----
+
+
+    - name: REMOVE FILE LDAP.CONF
+      file:
+        path: /etc/openldap/ldap.conf
+        state: absent
+
+    - name: CREATE FILE LDAP.CONF
+      file:
+        path: /etc/openldap/ldap.conf
+        state: touch
+
+    - name: ADD /etc/openldap/ldap.conf 
+      blockinfile: 
+        path: /etc/openldap/ldap.conf
+        block: |
+          #
+          # LDAP Defaults
+          #
+          
+          # See ldap.conf(5) for details
+          # This file should be world readable but not world writable.
+          
+          #BASE	dc=example,dc=com
+          #URI	ldap://ldap.example.com ldap://ldap-master.example.com:666
+          
+          #SIZELIMIT	12
+          #TIMELIMIT	15
+          #DEREF		never
+          
+          TLS_CACERTDIR /etc/openldap/cacerts
+          
+          # Turning this off breaks GSSAPI used with krb5 when rdns = false
+          SASL_NOCANON	on
+          URI ldap://ad.example.local
+          BASE dc=example,dc=local
+
+    - name: CREATE SUDO_ADMLINUX FILE
+      file:
+        path: /etc/openldap/cacerts
+        state: directory
+
+    - name: CREATE SUDO_ADMLINUX FILE
+      file:
+        path: /etc/openldap/cacerts/cert.cer
+        state: touch
+
+
+    - name: ADD SSSD.CONF FILE
+      blockinfile: 
+        path: /etc/openldap/cacerts/cert.cer
+        block: |
+          -----BEGIN CERTIFICATE-----
+          MIIDazCCAlOgAwIBAgIQXtqo9fSpB51BFdu3o+FKxDANBgkqhkiG9w0BAQsFADBI
+          MRUwEwYKCZImiZPyLGQBGRYFbG9jYWwxFzAVBgoJkiaJk/IsZAEZFgdleGFtcGxl
+          MRYwFAYDVQQDEw1leGFtcGxlLUFELUNBMB4XDTIxMTAwOTIwMjAwMVoXDTMxMTAw
+          OTIwMzAwMVowSDEVMBMGCgmSJomT8ixkARkWBWxvY2FsMRcwFQYKCZImiZPyLGQB
+          GRYHZXhhbXBsZTEWMBQGA1UEAxMNZXhhbXBsZS1BRC1DQTCCASIwDQYJKoZIhvcN
+          AQEBBQADggEPADCCAQoCggEBALyO+CA/7xOAb0Ar7Ep3HbwhEApIp3vTa/mgd6DM
+          Mf6HTmYRiNK9u6ll90OWWT5MtWVM0dhoFu0sycUMDl/p+zCnOsg4Zai1pzbyCREU
+          FngD5EeNt1nAVuNH4raPczSIGw33F/e1SOCje29kXjXQvpB57qqJBLZgxPm5gEcY
+          X799oHpTeHrlEguOflHDTLKFwPMMEgFd95UMPmLfCrXHZuLujCLnpyLlVjg3eAY3
+          yZTpPJMGD/lWTUxWYjDm1tE/u4Dg/gLxWSjvNLRiYOJkuplv3LRgC5L+YlSYPStK
+          mqX+Qx5l7gquO5v5n/Z0pvgNsOXXiYTcSMZEdrKUbk2tQ+cCAwEAAaNRME8wCwYD
+          VR0PBAQDAgGGMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFHUUVKDa5PFD7B+f
+          hAz35F7Wj9mRMBAGCSsGAQQBgjcVAQQDAgEAMA0GCSqGSIb3DQEBCwUAA4IBAQBu
+          3OFSo/Z133DLPZxh0APC5kVPvobp3J8cBfPc5yhcrTnCFJ5KZ8OoErMmMbEDFL8+
+          KPIlJS+Ii6Fh1LQ/BYba2PpmYwd17YW3aa2H6t4nCm6W/RhLB0cR10NJK5v6AT9o
+          6nqas2L0TI0NoIYIhGwflm7n2ja3Weaic6okm03iOlHFKbYEqn4TO2hXbFAapc4s
+          rINuhRi2SZyaf/EhR0IEQy9LUExevChEElvOoSb3UAa/jevhzibqyWaSs0iRTzoM
+          apekkbJTzwqNBaTeflvXi+vAc1WyMieNF1qwIF/y5m3+Jy/1srNdG8JjgI43cnNr
+          JmYTBjlOi0c7SSIHj79V
+          -----END CERTIFICATE-----
+
+    - name: CREATE SUDO_ADMLINUX FILE
+      file:
+        path: /etc/sudoers.d/sudo_admlinux
+        state: touch
+
+    - name: ADD GROUP SUDO_ADMLINUX
+      lineinfile:
+        line: "%ssh-allow ALL=(ALL) NOPASSWD: ALL"
+        path: /etc/sudoers.d/sudo_admlinux
+
+    - name: ADD SYSCTL.CONF NO WARNINGS
+      lineinfile:
+        line: "kernel.printk = 2 4 1 7"
+        path: /etc/sysctl.conf
+
+    - name: ADD SSSD.CONF FILE
+      blockinfile: 
+        path: /etc/sssd/sssd.conf
+        block: |
+          [domain/default]
+          
+          autofs_provider = ldap
+          ldap_schema = ad
+          ldap_search_base = dc=example,dc=local
+          id_provider = ldap
+          auth_provider = ldap
+          chpass_provider = ldap
+          ldap_uri = ldap://ad.example.local
+          ldap_id_use_start_tls = False
+          cache_credentials = True
+          ldap_tls_cacertdir = /etc/openldap/cacerts
+          [sssd]
+          config_file_version = 2
+          services = nss, pam, autofs
+          domains = default, example.local
+          
+          [nss]
+          fallback_homedir = /home/%u
+          default_shell = /bin/bash
+          
+          [pam]
+          
+          [domain/example.local]
+          id_provider = ldap
+          auth_provider = ldap
+          ldap_uri = ldap://ad.example.local
+          ldap_search_base = dc=example,dc=local
+          ldap_default_bind_dn = CN=netsol,CN=Users,DC=example,DC=local
+          ldap_default_authtok_type = obfuscated_password
+          ldap_default_authtok = AAAQAO28gvVuJlo/TEOpz4lmKSwuog4+IehkAy2oBlVD93p+u/OSnlqv+R+MBPZJsfH56NOizOf7Zeh05VRiACQhwrYAAQID
+          ldap_user_object_class = person
+          ldap_group_object_class = group
+          ldap_schema = ad
+          ldap_referrals = False
+          ldap_id_mapping = True
+          enumerate = False
+          debug_level = 9
+          cache_credentials = True
+          ldap_id_use_start_tls = False
+          ldap_tls_reqcert = demand
+          ldap_tls_cacert = /etc/pki/tls/certs/cert.crt
+          access_provider = simple
+          simple_allow_groups = ssh-allow
+          [autofs]
+
+
+    - name: REMOVE LOG FILES.
+      file:
+        path: /var/log/sssd
+        state: absent
+
+    - name: CRETAE DIRECTORY LOG FILES.
+      file:
+        path: /var/log/sssd
+        state: directory
+        mode: '0750'
+        owner: sssd
+        group: sssd
+
+    - name: REMOVE CACHE DB.
+      file:
+        path: /var/lib/sss/db
+        state: absent
+
+    - name: CRETAE DIRECTORY DB CACHE.
+      file:
+        path: /var/lib/sss/db
+        state: directory
+        mode: '0700'
+        owner: sssd
+        group: sssd
+
+    - name: REMOVE CACHE MC.
+      file:
+        path: /var/lib/sss/mc
+        state: absent
+
+    - name: CRETAE DIRECTORY MC CACHE.
+      file:
+        path: /var/lib/sss/mc
+        state: directory
+        mode: '0755'
+        owner: sssd
+        group: sssd
+
+    - name: ENABLE MKMOUNT
+      shell: authselect select sssd with-mkhomedir --force
+     
+    - name: RESTART SERVICE oddjobd
+      service:
+        name: oddjobd
+        state: restarted
+
+    - name: RESTART SERVICE oddjobd
+      service:
+        name: oddjobd
+        enabled: yes
+
+    - name: RESTART SERVICE SSSD
+      service:
+        name: sssd
+        state: restarted
+
+    - name: RESTART SERVICE SSSD
+      service:
+        name: sssd
+        enabled: yes
