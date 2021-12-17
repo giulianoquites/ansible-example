@@ -1,1 +1,90 @@
 ---
+- name: Public key is deployed to managed hosts for Ansible
+  hosts: all
+  tasks:
+  - name: installing podman
+    package:
+      name: podman
+      state: present
+
+  - name: installing podman
+    package:
+      name: cockpit-podman.noarch
+      state: present
+
+  - name: Pull an image
+    podman_image:
+      name: centos
+
+  - name: started pod
+    service:
+      name: podman
+      state: started
+
+  - name: started pod
+    service:
+      name: podman
+      enabled: yes
+
+  - name: started pod
+    service:
+      name: cockpit
+      state: started
+
+  - name: started pod
+    service:
+      name: cockpit
+      enabled: yes
+
+  - name: Copy file with owner and permissions
+    copy:
+      src: example001.tar.gz
+      dest: /root/
+
+  - name: Copy file with owner and permissions
+    copy:
+      src: example002.tar.gz
+      dest: /root/
+
+  - name:
+    unarchive:
+      src: /root/example001.tar.gz
+      dest: /root/
+      remote_src: True
+
+  - name:
+    unarchive:
+      src: /root/example002.tar.gz
+      dest: /root/
+      remote_src: True
+
+  - name: Build a basic myjava
+    containers.podman.podman_image:
+      name: myjava
+      path: /root/example001
+      build:
+        cache: no
+        force_rm: yes
+        format: oci
+  
+  - name: Build a basic mywildfly
+    containers.podman.podman_image:
+      name: mywildfly
+      path: /root/example002
+      build:
+        cache: no
+        force_rm: yes
+        format: oci
+
+  - name: Re-create a wildfly container
+    containers.podman.podman_container:
+      name: mywildfly_test001
+      image: mywildfly:latest
+      state: started
+      detach: true
+      exposed_ports:
+        - 8080
+      ports:
+        - 80:8080
+      
+
