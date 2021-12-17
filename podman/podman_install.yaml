@@ -4,12 +4,17 @@
   tasks:
   - name: installing podman
     package:
-      name: podman
+      name: "podman"
       state: present
 
   - name: installing podman
     package:
-      name: cockpit-podman.noarch
+      name: cockpit
+      state: present
+
+  - name: installing podman
+    package:
+      name: cockpit-podman
       state: present
 
   - name: Pull an image
@@ -18,6 +23,11 @@
 
   - name: started pod
     service:
+      name: firewalld
+      state: stopped
+
+  - name: started pod
+    service:
       name: podman
       state: started
 
@@ -38,12 +48,12 @@
 
   - name: Copy file with owner and permissions
     copy:
-      src: example001.tar.gz
+      src: /home/gquites/Documents/RedHat/Code/Ansible/Examples/Examples_Playbooks/example001.tar.gz
       dest: /root/
 
   - name: Copy file with owner and permissions
     copy:
-      src: example002.tar.gz
+      src: /home/gquites/Documents/RedHat/Code/Ansible/Examples/Examples_Playbooks/example002.tar.gz
       dest: /root/
 
   - name:
@@ -86,5 +96,3 @@
         - 8080
       ports:
         - 80:8080
-      
-
