@@ -48,12 +48,12 @@
 
   - name: Copy file with owner and permissions
     copy:
-      src: /home/gquites/Documents/RedHat/Code/Ansible/Examples/Examples_Playbooks/example001.tar.gz
+      src: example001.tar.gz
       dest: /root/
 
   - name: Copy file with owner and permissions
     copy:
-      src: /home/gquites/Documents/RedHat/Code/Ansible/Examples/Examples_Playbooks/example002.tar.gz
+      src: example002.tar.gz
       dest: /root/
 
   - name:
