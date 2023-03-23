@@ -9,12 +9,16 @@
         state: present
 
     - name: Register no Satellite
-      ansible.builtin.shell: subscription-manager register --org="EXAMPLE" --activationkey="rhel7server" 
+      ansible.builtin.shell: subscription-manager register --org="EXAMPLE" --activationkey="in-place7-8"
       ignore_errors: true
 
     - name: Upgrade all packages
       ansible.builtin.yum:
         name: '*'
+        state: latest
+    - name: Upgrade all packages
+      ansible.builtin.yum:
+        name: 'unzip'
         state: latest
 
     - name: Enable a RHSM repository
@@ -32,13 +36,12 @@
         state: latest 
     - name: Download foo.conf
       ansible.builtin.get_url:
-        url: https://github.com/giulianoquites/ansible-example/blob/main/inplace/leapp-data-21.tar.gz
-        dest: /tmp/leapp-data-21.tar.gz
-
-    - name: Extract foo.tgz into /var/lib/foo
-      ansible.builtin.unarchive:
-        src: /tmp/leapp-data-21.tar.gz
+        url: https://github.com/giulianoquites/ansible-example/blob/main/inplace/"{{ item }}"
         dest: /etc/leapp/files/
+      loop:
+        - device_driver_deprecation_data.json
+        - pes-events.json
+        - repomap.json
 
     - name: Register
       ansible.builtin.shell: leapp answer --section remove_pam_pkcs11_module_check.confirm=True
