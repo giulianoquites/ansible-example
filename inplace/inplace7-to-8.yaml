@@ -26,9 +26,9 @@
         name: rhel-7-server-extras-rpms
         state: enabled
 
-    - name: Reboot a slow machine that might have lots of updates to apply
-      ansible.builtin.reboot:
-        reboot_timeout: 3600
+#    - name: Reboot a slow machine that might have lots of updates to apply
+#      ansible.builtin.reboot:
+#        reboot_timeout: 3600
       
     - name: Install leapp
       ansible.builtin.yum:
@@ -36,7 +36,7 @@
         state: latest 
     - name: Download foo.conf
       ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/giulianoquites/ansible-example/main/inplace/"{{ item }}"
+        url: https://raw.githubusercontent.com/giulianoquites/ansible-example/main/inplace/{{ item }}
         dest: /etc/leapp/files/
       loop:
         - device_driver_deprecation_data.json
