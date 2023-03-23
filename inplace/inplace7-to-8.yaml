@@ -1,1 +1,41 @@
+---
+- name: Upgrade RHEL 7 To 8
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install RPM Satellite
+      ansible.builtin.yum:
+        name:  http://sat6x.lnx.example.local/pub/katello-ca-consumer-latest.noarch.rpm
+        state: present
 
+    - name: Register no Satellite
+      ansible.builtin.shell: subscription-manager register --org="EXAMPLE" --activationkey="rhel7server" 
+      ignore_errors: true
+
+    - name: Upgrade all packages
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+
+    - name: Enable a RHSM repository
+      community.general.rhsm_repository:
+        name: rhel-7-server-extras-rpms
+        state: enabled
+
+    - name: Reboot a slow machine that might have lots of updates to apply
+      ansible.builtin.reboot:
+        reboot_timeout: 3600
+
+    - name: Install leapp
+      ansible.builtin.yum:
+        name: leapp
+        state: latest     
+
+    - name: Register
+      ansible.builtin.shell: leapp answer --section remove_pam_pkcs11_module_check.confirm=True
+
+    - name: Generate leapp preupgrade report
+      ansible.builtin.raw: leapp preupgrade
+      ignore_errors: false
+      register: leapp_preupgrade
+      become: true    
