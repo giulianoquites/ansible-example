@@ -29,7 +29,16 @@
     - name: Install leapp
       ansible.builtin.yum:
         name: leapp
-        state: latest     
+        state: latest 
+    - name: Download foo.conf
+      ansible.builtin.get_url:
+        url: https://github.com/giulianoquites/ansible-example/blob/main/inplace/leapp-data-21.tar.gz
+        dest: /tmp/leapp-data-21.tar.gz
+
+    - name: Extract foo.tgz into /var/lib/foo
+      ansible.builtin.unarchive:
+        src: /tmp/leapp-data-21.tar.gz
+        dest: /etc/leapp/files/
 
     - name: Register
       ansible.builtin.shell: leapp answer --section remove_pam_pkcs11_module_check.confirm=True
