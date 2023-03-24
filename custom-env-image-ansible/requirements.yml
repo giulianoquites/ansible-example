@@ -1,0 +1,12 @@
+---
+collections:
+  - ansible.netcommon
+  - community.general
+  - community.crypto
+  - community.windows
+  - community.vmware
+  - community.aws
+  - community.azure
+  - community.zabbix
+  - cyberark.pas
+  - kubernetes.core

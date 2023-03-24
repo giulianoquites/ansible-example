@@ -1,0 +1,14 @@
+---
+ansible-navigator:
+  execution-environment:
+    container-engine: podman
+    enabled: true
+    image: hub001-local.lnx.example.local/demo:v2.8
+    pull:
+      policy: always
+    volume-mounts:
+    - dest: /repository/
+      src: /repository/
+  logging:
+    level: critical
+  mode: stdout

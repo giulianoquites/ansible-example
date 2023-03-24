@@ -1,0 +1,14 @@
+---
+ansible-navigator:
+  execution-environment:
+    enabled: true
+    container-engine: podman
+    image: demo:latest
+    pull-policy: always
+    volume-mounts:
+      - src: "/respository/"
+        dest: "/respository/"
+        options: "Z"
+  logging:
+    level: critical
+  mode: stdout
