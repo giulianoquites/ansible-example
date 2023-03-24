@@ -10,3 +10,4 @@ RUN unzip wildfly-26.0.0.Beta1.zip && \
 EXPOSE 8080
 WORKDIR ${JBOSS_HOME}
 CMD ["/opt/java/server/as/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
+

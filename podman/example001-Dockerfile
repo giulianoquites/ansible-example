@@ -2,3 +2,4 @@ FROM centos:latest
 MAINTAINER Giuliano "Quites"  <gquites@redhat.com>
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.312.b07-2.el8_5.x86_64/jre
 RUN yum -y update && yum -y install unzip tar java-1.8.0-openjdk.x86_64
+
