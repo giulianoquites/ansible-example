@@ -200,8 +200,6 @@
           access_provider = simple
           simple_allow_groups = ssh-allow
           [autofs]
-
-
     - name: REMOVE LOG FILES.
       file:
         path: /var/log/sssd

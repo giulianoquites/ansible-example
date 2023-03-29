@@ -17,7 +17,6 @@
           - sssd-ldap 
           - oddjob-mkhomedir
         state: latest
-
         
     - name: CLEAN FILE SSSD.CONF
       file:
