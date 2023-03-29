@@ -21,7 +21,7 @@ awx export --conf.host https://localhost --conf.username admin --conf.password *
 ```console
 Export in Terminal:
 awx export --conf.host https://localhost --conf.username admin --conf.password ******** --conf.insecure --job_templates 
-Expoer in file:
+Export in file:
 awx export --conf.host https://localhost --conf.username admin --conf.password "*****" --conf.insecure --organizations    > organizations.json   
 awx export --conf.host https://localshot --conf.username admin --conf.password "*****" --conf.insecure --users    > users.json
 awx export --conf.host https://localshot --conf.username admin --conf.password "*****" --conf.insecure --teams    > teams.json
