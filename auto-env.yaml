@@ -1,0 +1,40 @@
+---
+- name: create env
+  hosts: all
+  tasks:
+    - name: Git checkout
+      ansible.builtin.git:
+        repo: 'git@gitlab.lnx.example.local:root/ansible-env.git'
+        dest: /root/tmp
+        clone: yes
+        update: yes
+      register: command_result
+      ignore_errors: true
+
+    - name: execute builder
+      ansible.builtin.shell: "cd /root/tmp/ansible-vmware && ansible-builder build --tag vmware:v3 -v 3"
+
+    - name: push image hub 
+      containers.podman.podman_image:
+        name: vmware
+        tag: v3
+        push: yes
+        username: admin
+        password: redhat..123
+        push_args:
+          dest: aaphub001.lnx.example.local
+
+    - name: Add EE to the controller instance
+      awx.awx.execution_environment:
+        name: "VMware"
+        image: aaphub001.lnx.example.local/vmware:v3
+        controller_host: aapcontrol001.lnx.example.local
+        controller_password: redhat..123
+        controller_username: admin
+        organization: Ex
+        credential: Automation Hub Container Registry
+
+    - name: Recursively remove directory
+      ansible.builtin.file:
+        path: /root/tmp
+        state: absent
