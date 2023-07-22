@@ -1,0 +1,33 @@
+---
+- name: Get pod kubectl
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Get a list of all pods from any namespace
+      kubernetes.core.k8s_info:
+        kind: Pod
+        field_selectors:
+         - status.phase=Failed
+      register: pod_info
+
+    - name: Debug
+      ansible.builtin.debug:
+        var: pod_info.resources
+
+    - debug:
+        msg: "namespace: {{ item.metadata.namespace }} pod: {{ item.metadata.name }} "
+      loop: "{{ pod_info.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
+
+    - name:  Delete pods
+      kubernetes.core.k8s:
+        state: absent
+        api_version: v1
+        kind: Pod
+        namespace: "{{ item.metadata.namespace }}"
+        name: "{{ item.metadata.name }}"
+      loop: "{{ pod_info.resources }}"
+      loop_control:
+        label: "{{ item.metadata.name }}"
