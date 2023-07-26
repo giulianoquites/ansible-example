@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    test001: example001
+    test002: example002
+    test003: example003
+
+  tasks:
+  
+    - name: Get api dynatrace
+      ansible.builtin.uri:
+        url: http://{{ dynatrace_host }}
+        user: "{{ dynatrace_user }}"
+        password: "{{ dynatrace_password }}"
+        method: GET
+        force_basic_auth: true
+        status_code: 201
+      register: get_api
+
+#    - name: Send a notification to Teams Channel
+#      uri:
+#        ## Use your own URL here
+#        url: "https://example/webhookb2/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx..."
+#        method: POST
+#        body_format: json
+#        body:
+#          title: "IaaS provisioning job: {{ licence }}"
+#          text: "IaaS request has completed. Details of VMs created:"
+
