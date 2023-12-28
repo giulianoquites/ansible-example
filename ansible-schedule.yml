@@ -6,8 +6,10 @@
       awx.awx.schedule:
         name: "tt001"
         unified_job_template: "Demo Job Template"
-        controller_host: aapcontrol001.lnx.example.local
+        controller_host: aap-local.lnx.example.local
         controller_password: redhat..123
         controller_username: admin
         organization: Default
         rrule: "DTSTART;TZID=America/Sao_Paulo:20231227T233000 RRULE:INTERVAL=1;FREQ=WEEKLY;BYDAY=TU,WE,TH,FR,SA EXRULE:INTERVAL=1;FREQ=WEEKLY;BYDAY=SU,MO"
+        validate_certs: false
+
