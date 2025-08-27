@@ -1,0 +1,131 @@
+#
+# Copyright (c) 2022-2024 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+
+schemaVersion: 2.2.2
+metadata:
+  name: che-code
+components:
+
+  - name: dev
+    container:
+      image: quay.io/che-incubator/che-code-dev:insiders
+      memoryLimit: 12Gi
+      memoryRequest: 512Mi
+      cpuRequest: 500m
+      cpuLimit: 3500m
+      endpoints:
+        - exposure: public
+          name: dev
+          secure: true
+          protocol: http
+          targetPort: 8000
+      env:
+        - name: KUBEDOCK_ENABLED
+          value: "true"
+
+  - name: projects
+    volume:
+      size: 10Gi
+
+commands:
+  - id: npm-install
+    exec:
+      label: Install node dependencies
+      component: dev
+      workingDir: ${PROJECTS_ROOT}/che-code
+      commandLine: |
+        npm install
+      group:
+        kind: build
+
+  - id: npm-build
+    exec:
+      label: Compile with npm
+      component: dev
+      workingDir: ${PROJECTS_ROOT}/che-code
+      commandLine: |
+        npm run watch
+      group:
+        kind: build
+        isDefault: true
+
+  - id: npm-run
+    exec:
+      label: Run VS Code server on port 8000
+      component: dev
+      workingDir: ${PROJECTS_ROOT}/che-code
+      commandLine: |
+        npm run server
+      group:
+        kind: run
+        isDefault: true
+
+  - id: podman-compile-libc
+    exec:
+      label: Compile che-code in a ubi8-based container using Podman
+      component: dev
+      workingDir: ${PROJECTS_ROOT}/che-code
+      commandLine: |
+        echo "Compile libc-ubi8 mod"
+        cp -f build/dockerfiles/linux-libc-ubi8.Dockerfile build/dockerfiles/linux-libc-ubi8.no-test.Dockerfile
+        REMOVE_FROM="### Beginning of tests"
+        REMOVE_TO="### Ending of tests"
+        sed -i "/${REMOVE_FROM}/,/${REMOVE_TO}/d" build/dockerfiles/linux-libc-ubi8.no-test.Dockerfile
+        podman build -f build/dockerfiles/linux-libc-ubi8.no-test.Dockerfile -t linux-libc-ubi8-amd64 .
+      group:
+        kind: run
+
+  - id: podman-assemble-che-code
+    exec:
+      label: Build che-code image using Podman
+      component: dev
+      workingDir: ${PROJECTS_ROOT}/che-code
+      commandLine: |
+        echo "Build che-code image"
+        cp -f build/dockerfiles/assembly.Dockerfile build/dockerfiles/assembly.libc.Dockerfile
+        REPLACE="FROM linux-libc-ubi9-amd64 as linux-libc-ubi9-content"
+        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
+        REPLACE="COPY --from=linux-libc-ubi9-content --chown=0:0 /checode-linux-libc/ubi9 /mnt/rootfs/checode-linux-libc/ubi9"
+        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
+        REPLACE="FROM linux-musl-amd64 as linux-musl-content"
+        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
+        REPLACE="COPY --from=linux-musl-content --chown=0:0 /checode-linux-musl /mnt/rootfs/checode-linux-musl"
+        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
+        podman build -f build/dockerfiles/assembly.libc.Dockerfile -t che-code .
+      group:
+        kind: run
+  - id: install-git-subtree
+    exec:
+      label: Install git-subtree
+      component: dev
+      workingDir: ${PROJECTS_ROOT}
+      commandLine: |
+        mkdir temp && cd temp
+        git clone https://github.com/git/git.git
+        cd git/contrib/subtree
+        make && make prefix=${PROJECTS_ROOT}/temp install
+        cp -r ${PROJECTS_ROOT}/temp/libexec/git-core/ ~/bin
+        rm -rf ${PROJECTS_ROOT}/temp
+  - id: add-remote-upstream
+    exec:
+      label: Add remote for upstream
+      component: dev
+      workingDir: ${PROJECTS_ROOT}/che-code
+      commandLine: |
+        git remote add upstream-code https://github.com/microsoft/vscode
+        
+  - id: fetch-upstream-changes
+    exec:
+      label: Fetch upstream changes
+      component: dev
+      workingDir: ${PROJECTS_ROOT}/che-code
+      commandLine: |
+        git stash save --include-untracked
+        git fetch upstream-code main
+        ./rebase.sh
