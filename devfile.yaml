@@ -1,131 +1,99 @@
-#
-# Copyright (c) 2022-2024 Red Hat, Inc.
-# This program and the accompanying materials are made
-# available under the terms of the Eclipse Public License 2.0
-# which is available at https://www.eclipse.org/legal/epl-2.0/
-#
-# SPDX-License-Identifier: EPL-2.0
-#
-
+# cspell: disable=devspaces
 schemaVersion: 2.2.2
 metadata:
-  name: che-code
+  name: ansible-demo
 components:
-
-  - name: dev
+  - name: tooling-container
     container:
-      image: quay.io/che-incubator/che-code-dev:insiders
-      memoryLimit: 12Gi
-      memoryRequest: 512Mi
-      cpuRequest: 500m
-      cpuLimit: 3500m
-      endpoints:
-        - exposure: public
-          name: dev
-          secure: true
-          protocol: http
-          targetPort: 8000
+      image: ghcr.io/ansible/ansible-devspaces@sha256:f833103c12adf6ecb3cc8245dbc2d852ec5025c8c487d601b96995ea8783fb2f
+      memoryRequest: 256M
+      memoryLimit: 6Gi
+      cpuRequest: 250m
+      cpuLimit: 2000m
+      args: ['tail', '-f', '/dev/null']
       env:
-        - name: KUBEDOCK_ENABLED
+        - name: 'ANSIBLE_COLLECTIONS_PATH'
+          value: '~/.ansible/collections:/usr/share/ansible/collections:/projects/ansible-devspaces-demo/collections'
+        - name: 'KUBEDOCK_ENABLED'
           value: "true"
 
   - name: projects
     volume:
-      size: 10Gi
+      size: 100Gi
 
 commands:
-  - id: npm-install
-    exec:
-      label: Install node dependencies
-      component: dev
-      workingDir: ${PROJECTS_ROOT}/che-code
-      commandLine: |
-        npm install
-      group:
-        kind: build
 
-  - id: npm-build
+  - id: molecule-create
     exec:
-      label: Compile with npm
-      component: dev
-      workingDir: ${PROJECTS_ROOT}/che-code
-      commandLine: |
-        npm run watch
-      group:
-        kind: build
-        isDefault: true
-
-  - id: npm-run
-    exec:
-      label: Run VS Code server on port 8000
-      component: dev
-      workingDir: ${PROJECTS_ROOT}/che-code
-      commandLine: |
-        npm run server
+      label: "1.Molecule: start a test pod for the automation"
+      commandLine: 'source $HOME/.bashrc && molecule create'
+      workingDir: ${PROJECTS_ROOT}/ansible-devspaces-demo/collections/ansible_collections/sample_namespace/sample_collection/extensions
       group:
         kind: run
         isDefault: true
+      component: tooling-container
 
-  - id: podman-compile-libc
+  - id: molecule-list
     exec:
-      label: Compile che-code in a ubi8-based container using Podman
-      component: dev
-      workingDir: ${PROJECTS_ROOT}/che-code
-      commandLine: |
-        echo "Compile libc-ubi8 mod"
-        cp -f build/dockerfiles/linux-libc-ubi8.Dockerfile build/dockerfiles/linux-libc-ubi8.no-test.Dockerfile
-        REMOVE_FROM="### Beginning of tests"
-        REMOVE_TO="### Ending of tests"
-        sed -i "/${REMOVE_FROM}/,/${REMOVE_TO}/d" build/dockerfiles/linux-libc-ubi8.no-test.Dockerfile
-        podman build -f build/dockerfiles/linux-libc-ubi8.no-test.Dockerfile -t linux-libc-ubi8-amd64 .
+      label: "2.Molecule: view the test instance that was created"
+      commandLine: 'source $HOME/.bashrc && molecule list'
+      workingDir: ${PROJECTS_ROOT}/ansible-devspaces-demo/collections/ansible_collections/sample_namespace/sample_collection/extensions
       group:
         kind: run
+        isDefault: true
+      component: tooling-container
 
-  - id: podman-assemble-che-code
+  - id: molecule-converge
     exec:
-      label: Build che-code image using Podman
-      component: dev
-      workingDir: ${PROJECTS_ROOT}/che-code
-      commandLine: |
-        echo "Build che-code image"
-        cp -f build/dockerfiles/assembly.Dockerfile build/dockerfiles/assembly.libc.Dockerfile
-        REPLACE="FROM linux-libc-ubi9-amd64 as linux-libc-ubi9-content"
-        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
-        REPLACE="COPY --from=linux-libc-ubi9-content --chown=0:0 /checode-linux-libc/ubi9 /mnt/rootfs/checode-linux-libc/ubi9"
-        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
-        REPLACE="FROM linux-musl-amd64 as linux-musl-content"
-        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
-        REPLACE="COPY --from=linux-musl-content --chown=0:0 /checode-linux-musl /mnt/rootfs/checode-linux-musl"
-        sed -i -r -e "s|${REPLACE}||" build/dockerfiles/assembly.libc.Dockerfile
-        podman build -f build/dockerfiles/assembly.libc.Dockerfile -t che-code .
+      label: "3.Molecule: apply the role to the pod"
+      commandLine: 'source $HOME/.bashrc && molecule converge'
+      workingDir: ${PROJECTS_ROOT}/ansible-devspaces-demo/collections/ansible_collections/sample_namespace/sample_collection/extensions
       group:
         kind: run
-  - id: install-git-subtree
+        isDefault: true
+      component: tooling-container
+
+  - id: molecule-verify
     exec:
-      label: Install git-subtree
-      component: dev
-      workingDir: ${PROJECTS_ROOT}
-      commandLine: |
-        mkdir temp && cd temp
-        git clone https://github.com/git/git.git
-        cd git/contrib/subtree
-        make && make prefix=${PROJECTS_ROOT}/temp install
-        cp -r ${PROJECTS_ROOT}/temp/libexec/git-core/ ~/bin
-        rm -rf ${PROJECTS_ROOT}/temp
-  - id: add-remote-upstream
+      label: "4.Molecule: run the verification against the test pod"
+      commandLine: 'source $HOME/.bashrc && molecule verify'
+      workingDir: ${PROJECTS_ROOT}/ansible-devspaces-demo/collections/ansible_collections/sample_namespace/sample_collection/extensions
+      group:
+        kind: run
+        isDefault: true
+      component: tooling-container
+
+  - id: molecule-destroy
     exec:
-      label: Add remote for upstream
-      component: dev
-      workingDir: ${PROJECTS_ROOT}/che-code
-      commandLine: |
-        git remote add upstream-code https://github.com/microsoft/vscode
-        
-  - id: fetch-upstream-changes
+      label: "5.Molecule: reset the test pod back to a fresh instance"
+      commandLine: 'source $HOME/.bashrc && molecule destroy'
+      workingDir: ${PROJECTS_ROOT}/ansible-devspaces-demo/collections/ansible_collections/sample_namespace/sample_collection/extensions
+      group:
+        kind: run
+        isDefault: true
+      component: tooling-container
+
+  - id: molecule-test
     exec:
-      label: Fetch upstream changes
-      component: dev
-      workingDir: ${PROJECTS_ROOT}/che-code
+      label: "6.Molecule: run the full molecule test"
+      commandLine: 'source $HOME/.bashrc && molecule test'
+      workingDir: ${PROJECTS_ROOT}/ansible-devspaces-demo/collections/ansible_collections/sample_namespace/sample_collection/extensions
+      group:
+        kind: run
+        isDefault: true
+      component: tooling-container
+
+  - id: ansible-navigator
+    exec:
+      label: "Ansible-Navigator: Start ansible-navigator"
       commandLine: |
-        git stash save --include-untracked
-        git fetch upstream-code main
-        ./rebase.sh
+        if [ ! -d "$HOME/.cache/ansible-navigator" ]; then
+          mkdir -p "$HOME/.cache/ansible-navigator"
+        fi
+        cp /usr/local/lib/python3.11/site-packages/ansible_navigator/data/catalog_collections.py $HOME/.cache/ansible-navigator
+        ansible-navigator --ee false
+      workingDir: ${PROJECTS_ROOT}/ansible-devspaces-demo
+      component: tooling-container
+events:
+  preStop:
+    - "molecule-destroy"
