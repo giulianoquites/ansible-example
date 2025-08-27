@@ -13,7 +13,7 @@ components:
       args: ['tail', '-f', '/dev/null']
       volumeMounts:
         - name: projects
-          path: /projects
+          path: /data
       env:
         - name: 'ANSIBLE_COLLECTIONS_PATH'
           value: '~/.ansible/collections:/usr/share/ansible/collections:/projects/ansible-devspaces-demo/collections'
