@@ -98,9 +98,6 @@
                 - masquerade: {}
                   model: 'virtio'
                   name: "{{ network_interface1_name }}"
-                - bridge: {}
-                  model: 'virtio'
-                  name: "{{ network_interface2_name }}"
             memory:
               guest: "{{ memory_size }}"
           networks:
