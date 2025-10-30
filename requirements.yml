@@ -1,4 +1,6 @@
 collections:
+  - name: infra.openshift_virtualization_ops
+  - name: redhat.openshift
   - name: redhat.openshift_virtualization
   - name: kubernetes.core
 
