@@ -1,0 +1,5 @@
+collections:
+  - name: redhat.openshift_virtualization
+  - name: kubernetes.core
+
+
