@@ -1,0 +1,123 @@
+---
+- name: Create a VM on OpenShift Virtualization
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # VM details
+    vm_name: my-test-vm
+    vm_project: default
+    storage_size: 10Gi
+    memory_size: 2Gi
+    cpu_cores: 2
+    cpu_sockets: 1
+    cpu_threads: 1
+
+    # Templates and images
+    os_images_template: rhel8
+    os_images_project: openshift-virtualization-os-images
+    os_images_flavor: small
+    os_images_workload: server
+    os_images_template_namespace: openshift
+    os_images_template_revision: "1"
+    os_images_template_version: v1
+
+    # Network
+    network_interface1_name: default-net
+    network_interface2_name: bridge-net
+    network_bridge_name: my-bridge
+
+    # Cloud-init / Access
+    ssh_key_secret: my-ssh-key-secret
+    cloud_init_password: redhat
+
+    # API access
+    api_key: "{{ lookup('env', 'OPENSHIFT_API_KEY') }}"
+    validate_certs: false
+
+  tasks:
+    - name: Create virtual machine
+      redhat.openshift_virtualization.kubevirt_vm:
+        name: "{{ vm_name }}"
+        namespace: "{{ vm_project }}"
+        api_key: "{{ api_key }}"
+        running: true
+        validate_certs: "{{ validate_certs }}"
+        state: present
+
+        annotations:
+          vm.kubevirt.io/flavor: "{{ os_images_flavor }}"
+          vm.kubevirt.io/os: "{{ os_images_template }}"
+          vm.kubevirt.io/workload: "{{ os_images_workload }}"
+
+        labels:
+          app: "{{ vm_name }}"
+          kubevirt.io/dynamic-credentials-support: 'true'
+          vm.kubevirt.io/template: "{{ os_images_template }}-{{ os_images_workload }}-{{ os_images_flavor }}"
+          vm.kubevirt.io/template.namespace: "{{ os_images_template_namespace }}"
+          vm.kubevirt.io/template.revision: "{{ os_images_template_revision }}"
+          vm.kubevirt.io/template.version: "{{ os_images_template_version }}"
+
+        data_volume_templates:
+          - kind: 'DataVolume'
+            metadata:
+              name: "{{ vm_name }}"
+            spec:
+              sourceRef:
+                kind: 'DataSource'
+                name: "{{ os_images_template }}"
+                namespace: "{{ os_images_project }}"
+              storage:
+                resources:
+                  requests:
+                    storage: "{{ storage_size }}"
+
+        spec:
+          accessCredentials:
+            - sshPublicKey:
+                propagationMethod:
+                  noCloud: {}
+                source:
+                  secret:
+                    secretName: "{{ ssh_key_secret }}"
+          domain:
+            cpu:
+              cores: "{{ cpu_cores }}"
+              sockets: "{{ cpu_sockets }}"
+              threads: "{{ cpu_threads }}"
+            devices:
+              disks:
+                - disk:
+                    bus: 'virtio'
+                  name: 'rootdisk'
+                - disk:
+                    bus: 'virtio'
+                  name: 'cloudinitdisk'
+              interfaces:
+                - masquerade: {}
+                  model: 'virtio'
+                  name: "{{ network_interface1_name }}"
+                - bridge: {}
+                  model: 'virtio'
+                  name: "{{ network_interface2_name }}"
+            memory:
+              guest: "{{ memory_size }}"
+          networks:
+            - name: "{{ network_interface1_name }}"
+              pod: {}
+            - name: "{{ network_interface2_name }}"
+              multus:
+                networkName: "{{ network_bridge_name }}"
+          terminationGracePeriodSeconds: 180
+          volumes:
+            - dataVolume:
+                name: "{{ vm_name }}"
+              name: 'rootdisk'
+            - cloudInitNoCloud:
+                userData: |
+                  #cloud-config
+                  user: cloud-user
+                  password: {{ cloud_init_password }}
+                  chpasswd: { expire: False }
+              name: 'cloudinitdisk'
