@@ -6,19 +6,19 @@
 
   vars:
     # VM details
-#    vm_name: "{{ vm_name }}" 
-#    vm_project: default
+    vm_name: teste 
+    vm_project: testing
     storage_size: 30Gi
 #    memory_size: "{{ memory_size }}" 
-    #memory_size: 2Gi
-    #cpu_cores: 2
+    memory_size: 2Gi
+    cpu_cores: 2
 #    cpu_cores: "{{ cpu_cores }}"
     cpu_sockets: 1
     cpu_threads: 1
 
     # Templates and images
 #    os_images_template: "{{ os_images_template }}"
-#    os_images_template: rhel8
+    os_images_template: rhel8
     os_images_project: openshift-virtualization-os-images
     os_images_flavor: small
     os_images_workload: server
