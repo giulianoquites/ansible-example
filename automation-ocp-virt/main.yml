@@ -24,9 +24,7 @@
     os_images_template_version: v1
 
     # Network
-    network_interface1_name: default-net
-    network_interface2_name: bridge-net
-    network_bridge_name: my-bridge
+    network_interface1_name: default
 
     # Cloud-init / Access
     ssh_key_secret: my-ssh-key-secret
@@ -103,9 +101,6 @@
           networks:
             - name: "{{ network_interface1_name }}"
               pod: {}
-            - name: "{{ network_interface2_name }}"
-              multus:
-                networkName: "{{ network_bridge_name }}"
           terminationGracePeriodSeconds: 180
           volumes:
             - dataVolume:
