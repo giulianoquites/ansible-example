@@ -6,7 +6,7 @@
 
   vars:
     # VM details
-    vm_name: teste 
+    vm_name: teste001 
     vm_project: default
     storage_size: 30Gi
     memory_size: 2Gi
