@@ -1,7 +1,8 @@
 - hosts: localhost  
   connection: local
   tasks:
-  - ansible.builtin.shell: "{{ k8s-login }}"
+  - name: login ocp
+    ansible.builtin.shell: "{{ k8s-login }}"
   
   - name: Create project
     redhat.openshift.k8s:
