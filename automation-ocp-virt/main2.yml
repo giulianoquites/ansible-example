@@ -1,15 +1,11 @@
 - hosts: localhost  
   connection: local
-  module_defaults:
-    redhat.openshift:
-      host: "{{ K8S_HOST }}"
-      api_key: "{{ K8S_AUTH_API_KEY }}"
-      validate_certs: false
   tasks:
   - name: Create project
     redhat.openshift.k8s:
       api_key: "{{ K8S_AUTH_API_KEY }}"
       host: "{{ K8S_HOST }}"
+      validate_certs: false
       state: present
       definition:
         apiVersion: project.openshift.io/v1
