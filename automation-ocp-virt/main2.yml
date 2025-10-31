@@ -10,6 +10,7 @@
           name: workloads
   - name: Create fedora virtual machine
     redhat.openshift_virtualization.kubevirt_vm:
+      api_key: "{{ K8S_AUTH_API_KEY }}"
       state: present
       name: fedora-httpd
       namespace: workloads
