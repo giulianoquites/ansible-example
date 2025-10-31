@@ -1,6 +1,7 @@
 - hosts: localhost  
   connection: local
   tasks:
+  - ansible.builtin.shell: "{{ k8s-login }}"
   - name: Create project
     redhat.openshift.k8s:
       api_key: "{{ K8S_AUTH_API_KEY }}"
