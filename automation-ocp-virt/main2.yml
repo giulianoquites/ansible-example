@@ -1,4 +1,5 @@
-- hosts: all  # Target all hosts in your inventory
+- hosts: localhost  
+  connection: local
   tasks:
   - name: Create project
     redhat.openshift.k8s:
