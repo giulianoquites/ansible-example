@@ -5,14 +5,14 @@
   - name: login ocp
     ansible.builtin.shell: oc login -u kubeadmin -p "{{ K8S_PASS }}" https://api.upda.sandbox2603.opentlc.com:6443 --insecure-skip-tls-verify=true 
   
-#  - name: Create project
-#    redhat.openshift.k8s:
-#      state: present
-#      definition:
-#        apiVersion: project.openshift.io/v1
-#        kind: Project
-#        metadata:
-#          name: workloads
+  - name: Create project
+    redhat.openshift.k8s:
+      state: present
+      definition:
+        apiVersion: project.openshift.io/v1
+        kind: Project
+        metadata:
+          name: workloads
 #  - name: Create fedora virtual machine
 #    redhat.openshift_virtualization.kubevirt_vm:
 #      api_key: "{{ K8S_AUTH_API_KEY }}"
