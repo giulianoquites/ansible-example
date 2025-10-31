@@ -41,7 +41,7 @@
       redhat.openshift_virtualization.kubevirt_vm:
         name: "{{ vm_name }}"
         namespace: "{{ vm_project }}"
-        api_key: "{{ api_key }}"
+        api_key: "{{ K8S_AUTH_API_KEY }}"
         running: true
         validate_certs: "{{ validate_certs }}"
         state: present
