@@ -6,7 +6,7 @@
 
   vars:
     # VM details
-    vm_name: my-test-vm
+    vm_name: "{{ vm_name }}" 
     vm_project: default
     storage_size: 30Gi
     memory_size: "{{ memory_size }}" 
