@@ -1,0 +1,20 @@
+    ---
+    - name: Launch EC2 instances
+      hosts: localhost
+      connection: local
+      gather_facts: no
+
+      tasks:
+        - name: Create EC2 instances
+          amazon.aws.ec2_instance:
+            region: "{{ aws_region }}"
+            instance_type: "{{ instance_type }}"
+            image_id: "{{ ami_id }}"
+            key_name: "{{ key_pair_name }}"
+            security_group: "{{ security_group_name }}"
+            count: "{{ instance_count }}"
+            wait: yes
+            vpc_subnet_id: subnet-08d12b6272daf9481 # Optional: specify a subnet
+          register: ec2_info
+
+
