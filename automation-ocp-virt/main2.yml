@@ -5,6 +5,9 @@
   - name: login ocp
     ansible.builtin.shell: oc login -u kubeadmin -p "{{ K8S_PASS }}" https://api.upda.sandbox2603.opentlc.com:6443 --insecure-skip-tls-verify=true 
   
+  - name: oc get pods
+    ansible.builtin.shell: oc get pods -A
+
 
   - name: Create a k8s namespace
     kubernetes.core.k8s:
