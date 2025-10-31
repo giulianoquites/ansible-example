@@ -1,0 +1,40 @@
+- hosts: all  # Target all hosts in your inventory
+  tasks:
+  - name: Create project
+    redhat.openshift.k8s:
+      state: present
+      definition:
+        apiVersion: project.openshift.io/v1
+        kind: Project
+        metadata:
+          name: workloads
+  - name: Create fedora virtual machine
+    redhat.openshift_virtualization.kubevirt_vm:
+      state: present
+      name: fedora-httpd
+      namespace: workloads
+      labels:
+        app: httpd
+      instancetype:
+        name: u1.medium
+      preference:
+        name: fedora
+      spec:
+        domain:
+          devices:
+            interfaces:
+              - name: default
+                masquerade: {}
+        networks:
+          - name: default
+            pod: {}
+        volumes:
+          - containerDisk:
+              image: quay.io/containerdisks/fedora:latest
+            name: containerdisk
+          - cloudInitNoCloud:
+              userData: |-
+                #cloud-config
+                # The default username is: fedora
+            name: cloudinit
+  

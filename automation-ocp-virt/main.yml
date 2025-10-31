@@ -8,7 +8,7 @@
     # VM details
     vm_name: my-test-vm
     vm_project: default
-    storage_size: 10Gi
+    storage_size: 30Gi
     memory_size: 2Gi
     cpu_cores: 2
     cpu_sockets: 1
