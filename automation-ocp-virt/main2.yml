@@ -3,7 +3,7 @@
   tasks:
 
   - name: login ocp
-    ansible.builtin.shell: oc version 
+    ansible.builtin.shell: oc login -u kubeadmin -p "{{ K8S_PASS }}" https://api.upda.sandbox2603.opentlc.com:6443 
   
 #  - name: Create project
 #    redhat.openshift.k8s:
