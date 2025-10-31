@@ -3,7 +3,7 @@
   tasks:
 
   - name: login ocp
-    ansible.builtin.shell: "{{ k8s-login }}"
+    ansible.builtin.shell: oc version 
   
 #  - name: Create project
 #    redhat.openshift.k8s:
