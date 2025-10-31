@@ -33,7 +33,7 @@
     cloud_init_password: redhat
 
     # API access
-    api_key: "{{ lookup('env', 'OPENSHIFT_API_KEY') }}"
+    #api_key: "{{ lookup('env', 'OPENSHIFT_API_KEY') }}"
     validate_certs: false
 
   tasks:
