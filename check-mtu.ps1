@@ -1,19 +1,26 @@
-# se reclamar de execution policy
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+$A = "Ethernet 2"
 
-.\Collect-State.ps1 -Tag antes > antes.txt
+# 1. CONTROLE - propriedade inocua que o driver le do registro
+Set-NetAdapterAdvancedProperty -Name $A -RegistryKeyword "DebugLevel" -RegistryValue "5"
 
+# 2. SUJEITO - MTU da NIC pedido ABAIXO do host_mtu (1014 - 14 = MTU 1000)
+Set-NetAdapterAdvancedProperty -Name $A -RegistryKeyword "*JumboPacket" -RegistryValue "1014"
 
-$Alias = "Ethernet 2"; $Tag = "antes"
-
-"=== $Tag - $(Get-Date -Format o) ==="
-Get-NetAdapter -Name $Alias | Format-List Name, ifIndex, InterfaceGuid, DriverVersion, MacAddress, MtuSize
-Get-NetAdapterAdvancedProperty -Name $Alias | Select-Object DisplayName, DisplayValue, RegistryKeyword, RegistryValue | Format-Table -AutoSize
-Get-NetIPInterface -InterfaceAlias $Alias -PolicyStore ActiveStore | Select-Object AddressFamily, NlMtu | Format-Table -AutoSize
-Get-NetIPInterface -InterfaceAlias $Alias -PolicyStore PersistentStore -ErrorAction SilentlyContinue | Select-Object AddressFamily, NlMtu | Format-Table -AutoSize
-Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}" | ForEach-Object { Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue } | Where-Object { $_.MatchingDeviceId -like "*ven_1af4*" } | Format-List PSChildName, NetCfgInstanceId, NetworkAddress, DebugLevel, *Jumbo*, *MTU*
-$live = (Get-NetAdapter).InterfaceGuid
-Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" | ForEach-Object { $m = (Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue).MTU; if ($m) { [PSCustomObject]@{ GUID=$_.PSChildName; MTU=$m; Viva=($live -contains $_.PSChildName) } } } | Format-Table -AutoSize
+# 3. VEREDITO IMEDIATO - antes mesmo do upgrade
+Get-NetAdapter -Name $A | Select-Object Name, MtuSize
+Get-NetAdapterAdvancedProperty -Name $A |
+  Where-Object RegistryKeyword -match "Jumbo|DebugLevel" |
+  Select-Object RegistryKeyword, RegistryValue
 
 
-Set-NetAdapterAdvancedProperty -Name "Ethernet 2" -RegistryKeyword "*JumboPacket" -RegistryValue 1014
+
+# 4. camada IP (so depois de saber o MtuSize, o IP nao pode excede-lo)
+Set-NetIPInterface -InterfaceAlias $A -AddressFamily IPv4 -NlMtuBytes 1350
+
+# 5. coletar
+.\Collect-State.ps1 -Alias "Ethernet 2" -Tag antes > antes.txt
+
+# 6. upgrade IN-PLACE (Update driver, nunca Uninstall device)
+
+# 7. coletar de novo
+.\Collect-State.ps1 -Alias "Ethernet 2" -Tag depois > depois.txt
